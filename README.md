@@ -1,116 +1,56 @@
-# [React](https://facebook.github.io/react/) [![Build Status](https://img.shields.io/travis/facebook/react/master.svg?style=flat)](https://travis-ci.org/facebook/react) [![Coverage Status](https://img.shields.io/coveralls/facebook/react/master.svg?style=flat)](https://coveralls.io/github/facebook/react?branch=master) [![npm version](https://img.shields.io/npm/v/react.svg?style=flat)](https://www.npmjs.com/package/react) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md#pull-requests)
+react源码调试库
 
-React is a JavaScript library for building user interfaces.
+- 引言
+这是一个调试react的仓库。react源码使用gulp编译，模块引用类似于webpack alias（项目内js文件独立成包引用），源码不能直接运行。
+这种调试方式不太友好，但是是笔者学习react源码的唯一调试方式。如果你们发现了更好的调试方式，请在issue中留下宝贵意见，谢谢。
 
-* **Just the UI:** Lots of people use React as the V in MVC. Since React makes no assumptions about the rest of your technology stack, it's easy to try it out on a small feature in an existing project.
-* **Virtual DOM:** React abstracts away the DOM from you, giving a simpler programming model and better performance. React can also render on the server using Node, and it can power native apps using [React Native](https://facebook.github.io/react-native/).
-* **Data flow:** React implements one-way reactive data flow which reduces boilerplate and is easier to reason about than traditional data binding.
+- 编译src源码
+```
+npm run build
+```
 
-**NEW**! Check out our newest project [React Native](https://github.com/facebook/react-native), which uses React and JavaScript to create native mobile apps.
+- 移动react-dom代码至build/packages目录下
+```
+cp ./node_modules/react-dom/lib ./build/packages/
+```
 
-[Learn how to use React in your own project](https://facebook.github.io/react/docs/getting-started.html).
+- 在debug下编写代码调试
 
-## Examples
+```
+// 当使用 React 创建组件时，首先会调用 instantiateReactComponent，这是初始化组件的入口函数，它通过判断 node 类型来区分不同组件的入口。
+// 当 node 为空时，说明 node 不存在，则初始化空组件 ReactEmptyComponent.create(instantiateReactComponent)。
+// 当 node 类型为对象时，即是 DOM 标签组件或自定义组件，那么如果 element 类型为字符串时，则初始化 DOM 标签组件 ReactNativeComponent.createInternalComponent(element)，否则初始化自定义组件 ReactCompositeComponentWrapper()。
+// 当 node 类型为字符串或数字时，则初始化文本组件 ReactNativeComponent.createInstanceForText(node)。
+// 如果是其他情况，则不作处理。
+// path: src/renderers/shared/reconciler/instantiateReactComponent.js
 
-We have several examples [on the website](https://facebook.github.io/react/). Here is the first one to get you started:
 
-```js
-var HelloMessage = React.createClass({
-  render: function() {
-    return <div>Hello {this.props.name}</div>;
+require('jsdom-global')()
+const React = require('../build/packages/react/react')
+const ReactDOM = require('../build/packages/react-dom/ReactDOM')
+
+document.body.innerHTML = '<div id="react-wrapper"></div>'
+
+const ReactClass = React.createClass({
+  render(){
+    return React.createElement('div',  {}, this.props.children)
   }
-});
+})
 
 ReactDOM.render(
-  <HelloMessage name="John" />,
-  document.getElementById('container')
-);
+  React.createElement(ReactClass,  {}, 'hello', 'world !'),
+  document.getElementById('react-wrapper'))
+console.log(document.body.innerHTML)
 ```
 
-This example will render "Hello John" into a container on the page.
-
-You'll notice that we used an HTML-like syntax; [we call it JSX](https://facebook.github.io/react/docs/jsx-in-depth.html). JSX is not required to use React, but it makes code more readable, and writing it feels like writing HTML. A simple transform is included with React that allows converting JSX into native JavaScript for browsers to digest.
-
-## Installation
-
-The fastest way to get started is to serve JavaScript from the CDN (also available on [cdnjs](https://cdnjs.com/libraries/react) and [jsdelivr](https://www.jsdelivr.com/projects/react)):
-
-```html
-<!-- The core React library -->
-<script src="https://fb.me/react-0.14.8.js"></script>
-<!-- The ReactDOM Library -->
-<script src="https://fb.me/react-dom-0.14.8.js"></script>
+- 调试
+```
+npm i devtool -g
+devtool ./debug/xxx.js
 ```
 
-We've also built a [starter kit](https://facebook.github.io/react/downloads/react-0.14.8.zip) which might be useful if this is your first time using React. It includes a webpage with an example of using React with live code.
-
-If you'd like to use [bower](http://bower.io), it's as easy as:
-
-```sh
-bower install --save react
-```
-
-And it's just as easy with [npm](http://npmjs.com):
-
-```sh
-npm i --save react
-```
-
-## Contribute
-
-The main purpose of this repository is to continue to evolve React core, making it faster and easier to use. If you're interested in helping with that, then keep reading. If you're not interested in helping right now that's ok too. :) Any feedback you have about using React would be greatly appreciated.
-
-### Building Your Copy of React
-
-The process to build `react.js` is built entirely on top of node.js, using many libraries you may already be familiar with.
-
-#### Prerequisites
-
-* You have `node` installed at v4.0.0+ and `npm` at v2.0.0+.
-* You are familiar with `npm` and know whether or not you need to use `sudo` when installing packages globally.
-* You are familiar with `git`.
-
-#### Build
-
-Once you have the repository cloned, building a copy of `react.js` is really easy.
-
-```sh
-# grunt-cli is needed by grunt; you might have this installed already
-npm install -g grunt-cli
-npm install
-grunt build
-```
-
-At this point, you should now have a `build/` directory populated with everything you need to use React. The examples should all work.
-
-### Grunt
-
-We use grunt to automate many tasks. Run `grunt -h` to see a mostly complete listing. The important ones to know:
-
-```sh
-# Build and run tests with PhantomJS
-grunt test
-# Lint the code with ESLint
-grunt lint
-# Wipe out build directory
-grunt clean
-```
-
-### Good First Bug
-To help you get your feet wet and get you familiar with our contribution process, we have a list of [good first bugs](https://github.com/facebook/react/labels/good%20first%20bug) that contain bugs which are fairly easy to fix.  This is a great place to get started.
-
-
-### License
-
-React is [BSD licensed](./LICENSE). We also provide an additional [patent grant](./PATENTS).
-
-React documentation is [Creative Commons licensed](./LICENSE-docs).
-
-Examples provided in this repository and in the documentation are [separately licensed](./LICENSE-examples).
-
-### More…
-
-There's only so much we can cram in here. To read more about the community and guidelines for submitting pull requests, please read the [Contributing document](CONTRIBUTING.md).
-
-## Troubleshooting
-See the [Troubleshooting Guide](https://github.com/facebook/react/wiki/Troubleshooting)
+- Q&A
+  - 为什么要使用es5+js而不是es6+jsx？
+    后者的jsx在node运行中不识别，会报错
+  - 为什么要引用jsdom？
+    因为node中无法获得document等window上的对象
