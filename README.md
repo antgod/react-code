@@ -19,10 +19,10 @@ cp ./node_modules/react-dom/lib ./build/packages/
 ```
 
 #### 调试
-- 在debug下编写代码调试
+- 在debug目录下编写调试文件：instantiateReactComponent.js
 
 ```
-// 当使用 React 创建组件时，首先会调用 instantiateReactComponent，这是初始化组件的入口函数，它通过判断 node 类型来区分不同组件的入口。
+// 当使用 React 创建组件时，首先会调用 instantiateReactComponent。
 // path: src/renderers/shared/reconciler/instantiateReactComponent.js
 
 require('jsdom-global')()
@@ -46,7 +46,7 @@ console.log(document.body.innerHTML)
 - 调试
 ```
 npm i devtool -g
-devtool ./debug/xxx.js
+devtool ./debug/instantiateReactComponent.js
 ```
 
 #### Q&A
@@ -54,5 +54,5 @@ devtool ./debug/xxx.js
 
     后者的jsx在node运行中不识别，会报错
   - 为什么要引用jsdom？
-  
+
     因为node中无法获得document等window上的对象
