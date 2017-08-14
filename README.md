@@ -5,19 +5,6 @@
 这是一个调试react的仓库。react源码使用gulp编译，模块引用类似于webpack alias（项目内js文件独立成包引用），源码不能直接运行。
 这种调试方式不太友好，但是是笔者学习react源码的唯一调试方式。如果你们发现了更好的调试方式，请在issue中留下宝贵意见，谢谢。
 
-#### 准备工作
-- 编译src源码
-```
-npm run build
-```
-
-- 移动react-dom代码至build/packages目录下
-
-编译的代码中只有react源码而没有react-dom源码（请仔细阅读两个react-dom，一个是个当前文件的引用。一个是空对象）。
-```
-cp ./node_modules/react-dom/lib ./build/packages/
-```
-
 #### 调试
 - 在debug目录下编写调试文件：instantiateReactComponent.js
 
